@@ -133,20 +133,7 @@ class Constellation_Finder:
                + str(moon_phase) + "," + str(tilt))
         return lin
 
-    def rearrange_string(self, input_string):
-        elements = input_string.split(',')
-        strings = []
-        numbers = []
 
-        for element in elements:
-            element = element.strip()
-            if element.replace(".", "", 1).isdigit():
-                numbers.append(element)
-            else:
-                strings.append(element)
-
-        result = ','.join(strings + numbers)
-        return result
 
 # usg = Constellation_Finder()
 # print(usg.getLine("2023-11-18"))
