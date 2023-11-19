@@ -1,7 +1,7 @@
 # AstroData
 Date to Astronomy data for Time Series
 
-The purpose of this code is to provide with extra columns you may need for Machine Learning tasks.
+The purpose of this code is to provide with extra columns you may need for Machine Learning tasks that involve time series.
 It converts a date to Astronomical data, that show location of the planets (constellations they are in) for a date of choice.
 It also gives a distance of a planet to Sun, includes Moon phase, Earth's and Moon's distance from Sun, and Earth's tilt.
 
