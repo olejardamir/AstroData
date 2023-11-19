@@ -9,5 +9,6 @@ The constellation names are using BERT embeddings, since it is possible to have 
 
 I could not use the position of objects in the sky, because that would imply a location on Earth. Instead, it had to be done against the constellations.
 I have not tested if this data is enough for Machine Learning to guess the date (backward tranformation), and we might need to add more data to be able to accomplish that without a difficulty.
+This approach may be considered astrology as well as astronomy.
 
 Since using BERT embeddings, neural nets would be a good choice of ML due to constellations that were not in the training set...
