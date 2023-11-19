@@ -8,7 +8,7 @@ It also gives a distance of a planet to Sun, includes Moon phase, Earth's and Mo
 The constellation names are using BERT embeddings, since it is possible to have the names of constellations that were not encountered during the training. The embedding is resampled by the bicubic resample so that vector does not overflow the data-sets.
 
 I could not use the position of objects in the sky, because that would imply a location on Earth. Instead, it had to be done against the constellations.
-I have not tested if this data is enough for Machine Learning to guess the date (backward tranformation), and we might need to add more data to be able to accomplish that without a difficulty.
+I have not tested if this data is enough for Machine Learning to guess the date (backward tranformation), and we might need to add more data.
 This approach may be considered astrology as well as astronomy.
 
 Since using BERT embeddings, neural nets would be a good choice of ML due to constellations that were not in the training set...
