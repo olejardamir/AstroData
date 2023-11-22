@@ -13,6 +13,8 @@ from scipy.ndimage import zoom
 import datetime
 import warnings
 from erfa import ErfaWarning
+from skyfield.api import load, Topos
+from pytz import timezone
 
 warnings.filterwarnings("ignore", category=ErfaWarning)
 
@@ -31,7 +33,7 @@ class Constellation_Finder:
         time_date = Time(unix_timestamp, format='unix')
 
         celestial_bodies = ['mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune',
-                            'pluto', 'sun', 'moon']
+                            'pluto', 'sun', 'moon', 'earth']
 
         celestial_body_constellations = {}
 
@@ -68,22 +70,13 @@ class Constellation_Finder:
         return moonphase
 
     def get_tilt(self, timestamp):
-        # Convert timestamp to datetime
         date = datetime.datetime.fromtimestamp(timestamp)
-
-        # Get the 'next equinox' (either vernal or autumnal)
         next_equinox = ephem.next_equinox(date)
-
-        # Get the 'previous equinox'
         prev_equinox = ephem.previous_equinox(date)
-
-        # Calculate the days between the 'next' and 'previous' equinox
         days = (next_equinox.datetime() - prev_equinox.datetime()).days
-
-        # Calculate the tilt
         tilt = 23.44 * (1 - 2 * ((date - prev_equinox.datetime()).days / days))
-
         return tilt
+
 
     def bicubic_resample(self, original_array, target_elements):
         original_length = len(original_array)
@@ -105,35 +98,91 @@ class Constellation_Finder:
         embedding_str = ",".join(map(str, embeddings))
         return embedding_str
 
+    def get_planet_phase(self, unix_timestamp, planet_name):
+        planets = load('de421.bsp')
+        ts = load.timescale()
+
+        # Adding timezone information to the datetime object
+        utc_datetime = datetime.datetime.utcfromtimestamp(unix_timestamp).replace(tzinfo=timezone('UTC'))
+        time = ts.utc(utc_datetime)
+
+        observer = planets['earth'] + Topos(latitude_degrees=51.48,
+                                            longitude_degrees=-0.0)  # Replace with your observer's location
+
+        planet = planets[planet_name + ' BARYCENTER']  # Use the barycenter name
+        astrometric = observer.at(time).observe(planet)
+        apparent = astrometric.apparent()
+
+        elongation = apparent.separation_from(astrometric)
+        phase_angle = 180 - elongation.degrees
+
+        return str(phase_angle)
+
     def getLine(self, date_str):
         timestamp = datetime.datetime.strptime(date_str, "%Y-%m-%d").timestamp()
         consts = self.get_planet_constellations(timestamp)
-        moon_phase = self.get_moon_phase(timestamp)
         tilt = self.get_tilt(timestamp)
-        lin = (self.get_bert_embedding(consts["Mercury"]["constellation"]) + "," + str(
-            consts["Mercury"]["distance_to_sun"]) + ","
-               + self.get_bert_embedding(consts["Venus"]["constellation"]) + "," + str(
-                    consts["Venus"]["distance_to_sun"]) + ","
-               + self.get_bert_embedding(consts["Mars"]["constellation"]) + "," + str(
-                    consts["Mars"]["distance_to_sun"]) + ","
-               + self.get_bert_embedding(consts["Jupiter"]["constellation"]) + "," + str(
-                    consts["Jupiter"]["distance_to_sun"]) + ","
-               + self.get_bert_embedding(consts["Saturn"]["constellation"]) + "," + str(
-                    consts["Saturn"]["distance_to_sun"]) + ","
-               + self.get_bert_embedding(consts["Uranus"]["constellation"]) + "," + str(
-                    consts["Uranus"]["distance_to_sun"]) + ","
-               + self.get_bert_embedding(consts["Neptune"]["constellation"]) + "," + str(
-                    consts["Neptune"]["distance_to_sun"]) + ","
-               + self.get_bert_embedding(consts["Pluto"]["constellation"]) + "," + str(
-                    consts["Pluto"]["distance_to_sun"]) + ","
-               + self.get_bert_embedding(consts["Sun"]["constellation"]) + "," + str(
-                    consts["Sun"]["distance_to_sun"]) + ","
-               + self.get_bert_embedding(consts["Moon"]["constellation"]) + "," + str(
-                    consts["Moon"]["distance_to_sun"]) + ","
-               + str(moon_phase) + "," + str(tilt))
+        lin = (
+                (
+                        self.get_bert_embedding(consts["Mercury"]["constellation"])
+                        + "," + str(consts["Mercury"]["distance_to_sun"])
+                        + "," + self.get_planet_phase(timestamp, 'mercury')
+                ) + (
+                        "," + self.get_bert_embedding(consts["Venus"]["constellation"])
+                        + "," + str(consts["Venus"]["distance_to_sun"])
+                        + "," + self.get_planet_phase(timestamp, 'venus')
+                ) + (
+                        "," + self.get_bert_embedding(consts["Mars"]["constellation"])
+                        + "," + str(consts["Mars"]["distance_to_sun"])
+                        + "," + self.get_planet_phase(timestamp, 'mars')
+                ) + (
+                        "," + self.get_bert_embedding(consts["Jupiter"]["constellation"])
+                        + "," + str(consts["Jupiter"]["distance_to_sun"])
+                        + "," + self.get_planet_phase(timestamp, 'jupiter')
+                ) + (
+                        "," + self.get_bert_embedding(consts["Saturn"]["constellation"])
+                        + "," + str(consts["Saturn"]["distance_to_sun"])
+                        + "," + self.get_planet_phase(timestamp, 'saturn')
+                ) + (
+                        "," + self.get_bert_embedding(consts["Uranus"]["constellation"])
+                        + "," + str(consts["Uranus"]["distance_to_sun"])
+                        + "," + self.get_planet_phase(timestamp, 'uranus')
+                ) + (
+                        "," + self.get_bert_embedding(consts["Neptune"]["constellation"])
+                        + "," + str(consts["Neptune"]["distance_to_sun"])
+                        + "," + self.get_planet_phase(timestamp, 'neptune')
+                ) + (
+                        "," + self.get_bert_embedding(consts["Pluto"]["constellation"])
+                        + "," + str(consts["Pluto"]["distance_to_sun"])
+                ) + (
+                        "," + self.get_bert_embedding(consts["Sun"]["constellation"])
+                        + "," + str(consts["Sun"]["distance_to_sun"])
+                ) + (
+                        "," + self.get_bert_embedding(consts["Moon"]["constellation"])
+                        + "," + self.get_bert_embedding(consts["Earth"]["constellation"])
+                        + "," + str(consts["Moon"]["distance_to_sun"])
+                        + "," + str(self.get_moon_phase(timestamp))
+                ) + (
+                        "," + str(tilt)
+                        + "," + date_str.replace("-", ",")
+                )
+        )
         return lin
 
+    def rearrange_string(self, input_string):
+        elements = input_string.split(',')
+        strings = []
+        numbers = []
 
+        for element in elements:
+            element = element.strip()
+            if element.replace(".", "", 1).isdigit():
+                numbers.append(element)
+            else:
+                strings.append(element)
+
+        result = ','.join(strings + numbers)
+        return result
 
 # usg = Constellation_Finder()
 # print(usg.getLine("2023-11-18"))
