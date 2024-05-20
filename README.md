@@ -12,3 +12,5 @@ I have not tested if this data is enough for Machine Learning to guess the date 
 This approach may be considered astrology as well as astronomy.
 
 Since using BERT embeddings, neural nets would be a good choice of ML due to possible constellations that were not in the training set but that might appear elsewhere...
+
+FourierForest has been added to this small project, since it can be used for predicting the data relating to time-series. I hope to evolve this project into something I always wanted to have, which is a mobile application for dowsing based on time series and geographical data... so I might be posting more files here.
