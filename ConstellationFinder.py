@@ -17,10 +17,13 @@ from pytz import timezone
 from scipy.ndimage import zoom
 from skyfield.api import load, Topos
 from transformers import AutoTokenizer, AutoModel
+from astral import LocationInfo
+from astral.sun import sun
 
 warnings.filterwarnings("ignore", category=ErfaWarning)
 
 solar_system_ephemeris.set('de432s')
+
 
 class Constellation_Finder:
 
@@ -134,6 +137,7 @@ class Constellation_Finder:
 
         # Get day/night data
         day_night_data = self.get_day_night_data(timestamp)
+        sunrise,sunset,percentage_daylight = self.get_sunrise_sunset(timestamp, longitude, latitude)
 
         # Create the output line
         lin = (
@@ -181,7 +185,8 @@ class Constellation_Finder:
 
                 ) + (
                         "," + ",".join(map(str, day_night_data))
-                )
+
+                ) +(","+str(sunrise)+','+str(sunset)+','+str(percentage_daylight))
         )
         return lin
 
@@ -212,18 +217,20 @@ class Constellation_Finder:
             'Neptune': 16.1,
             'Moon': 708.7,  # Earth's Moon
             'Pluto': 153.3,  # Dwarf planet
+            'Ceres': 9.1,  # Dwarf planet
+            'Io': 42.5,  # Moon of Jupiter
+            'Europa': 85.2,  # Moon of Jupiter
+            'Ganymede': 171.7,  # Moon of Jupiter
+            'Callisto': 400.5,  # Moon of Jupiter
+            'Titan': 382.7,  # Moon of Saturn
+            'Triton': 141.0,  # Moon of Neptune
+            'Charon': 153.3,  # Moon of Pluto
+            'Eris': 25.9,  # Dwarf planet
+            'Haumea': 3.9,  # Dwarf planet
+            'Makemake': 22.5,  # Dwarf planet
         }
 
-        if object_name in DAY_LENGTHS:
-            return DAY_LENGTHS[object_name]
-        else:
-            # Fetching data for celestial objects dynamically
-            obj = Horizons(id=object_name, location='500@10', epochs={'start': '2024-01-01', 'stop': '2024-01-02', 'step': '1d'})
-            eph = obj.ephemerides()
-            rotation_period = eph['rot_per'][0]
-            if np.isnan(rotation_period):
-                raise ValueError(f"Day length for {object_name} is not available.")
-            return rotation_period
+        return DAY_LENGTHS[object_name]
 
     def calculate_day_night_info(self, object_name, unix_timestamp):
         day_length_hours = self.get_day_length(object_name)
@@ -249,10 +256,36 @@ class Constellation_Finder:
 
     def get_day_night_data(self, unix_timestamp):
         ret = []
-        for celestial_object in ['Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Moon', 'Pluto']:
+        for celestial_object in [
+    'Mercury', 'Venus', 'Earth', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Moon', 'Pluto',
+    'Ceres', 'Io', 'Europa', 'Ganymede', 'Callisto', 'Titan', 'Triton', 'Charon', 'Eris', 'Haumea', 'Makemake'
+        ]:
             info = self.calculate_day_night_info(celestial_object, unix_timestamp)
             ret.append(info)
         return ret
+
+    def get_sunrise_sunset(self, unix_timestamp, longitude, latitude):
+        # Convert Unix timestamp to datetime
+        date = datetime.datetime.fromtimestamp(unix_timestamp, tz=datetime.timezone.utc)
+
+        # Create a LocationInfo object with the provided longitude and latitude
+        location = LocationInfo(latitude=latitude, longitude=longitude)
+
+        # Calculate the sunrise and sunset times for the given date
+        s = sun(location.observer, date=date)
+
+        # Convert the sunrise and sunset times to Unix timestamps
+        sunrise_timestamp = int(s['sunrise'].timestamp())
+        sunset_timestamp = int(s['sunset'].timestamp())
+
+        # Calculate the duration of daylight in seconds
+        daylight_duration = sunset_timestamp - sunrise_timestamp
+
+        # Calculate the percentage of the 24-hour day that is daylight
+        percentage_daylight = (daylight_duration / 86400) * 100
+
+        # Return the sunrise and sunset times as Unix timestamps and the percentage of daylight
+        return sunrise_timestamp, sunset_timestamp, percentage_daylight
 
     def timestamp_to_date(self, unix_timestamp):
         return datetime.datetime.utcfromtimestamp(unix_timestamp).strftime('%Y-%m-%d')
