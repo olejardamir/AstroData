@@ -1,4 +1,4 @@
-# AstroData
+# AstroData - UNDER MAJOR CONSTRUCTION/DEVELOPMENT !!!
 Date to Astronomy data for Time Series
 
 The purpose of this code is to provide with extra columns you may need for Machine Learning tasks that involve time series with a 1-day precision.
