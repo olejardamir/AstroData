@@ -94,3 +94,66 @@ To obtain the above data, you can use the following APIs and services:
 
 
 - Still not sure whether the data processing and predicting will be done on mobile device or on a PC. Gathering and alerts will 100% be done on device. I could test it with the earthquake and tremmors data.
+
+
+
+# Android Device Data Readings
+
+This document outlines the types of dynamic data that can be retrieved from various sources on an Android device. Data should be dynamic and predictable to some extent (minimum 7 days) if the user cannot control it, or static if the user can control it (e.g., altitude by changing the location).
+
+## Celestial Objects
+
+### Time Dependent, Location Independent (Solar System)
+- Distance from the Sun
+- Tilt (if any)
+- Percentage completed of a year or rotation period around the Sun
+- Percentage completed of a day or rotation period around the axis (if any)
+- The phase (such as the moon phase)
+- Length of a day (if not dependent on tilt and if day lengths vary)
+- Seasonal information
+
+### Time Dependent, Location Dependent
+- Beyond Solar System:
+  - Location in the sky
+- Solar System:
+  - Location in the sky
+
+## Earth Only
+
+### Geospatial Data
+- Timestamp
+- Longitude, Latitude
+- Altitude
+- Length of a day
+- Sunset, Sunrise, Twilight
+- Any timestamp broken into year, month, day,... or percentage assuming the maximum timestamp (e.g., 20 years into the future)
+
+### Meteorological Data
+- Weather, Humidity, Air Pressure
+- Air quality
+- UV Index
+
+## Device Readings
+
+- Speed and direction of travel
+- Temperature
+- Humidity
+- Atmospheric pressure
+- Accelerometer readings (movement, orientation)
+- Gyroscope readings (rotation and twist)
+- Magnetometer readings (magnetic field strength)
+- Number of nearby networks (WiFi, Bluetooth)
+- Battery level
+
+## Notes
+
+- Exclude data that is static and uncontrollable.
+- Ensure necessary permissions are granted by the user to access certain data types.
+
+## Usage
+
+This information is intended to assist developers in creating applications that utilize dynamic data from various sources on Android devices.
+
+## License
+
+This project is licensed under the terms of the [MIT license](https://opensource.org/licenses/MIT).
